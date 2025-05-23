@@ -5,87 +5,87 @@
     <meta charset="utf-8" />
     <style>
         html, body, #map { height: 100%; margin: 0; padding: 0; }
-        #searchBox {
+        #searchBar {
             position: absolute;
             top: 10px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
-            padding: 10px;
             background: white;
-            border-radius: 5px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.2);
         }
     </style>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 <body>
-<div id="searchBox">
-    <input type="text" id="zipInput" placeholder="Enter ZIP Code">
-    <button onclick="searchZIP()">Search</button>
-</div>
-<div id="map"></div>
-<script>
-    var map = L.map('map').setView([29.7604, -95.3698], 9); // Houston area
+    <div id="searchBar">
+        <input type="text" id="zipInput" placeholder="Enter ZIP Code" />
+        <button onclick="findZone()">Search</button>
+    </div>
+    <div id="map"></div>
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+    <script>
+        const map = L.map('map').setView([29.7604, -95.3698], 9);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
 
-    const zipData = {
-        '77001': 'B', '77002': 'B', '77003': 'B', '77004': 'B', '77005': 'B',
-        '77006': 'B', '77007': 'B', '77008': 'B', '77009': 'B', '77010': 'B',
-        '77011': 'B', '77012': 'B', '77013': 'B', '77014': 'C', '77015': 'B',
-        '77016': 'B', '77017': 'B', '77018': 'B', '77019': 'B', '77020': 'B',
-        '77021': 'B', '77022': 'B', '77023': 'B', '77024': 'C', '77025': 'B',
-        '77026': 'B', '77027': 'C', '77028': 'B', '77029': 'B', '77030': 'B',
-        '77031': 'C', '77032': 'C', '77033': 'B', '77034': 'A', '77035': 'C',
-        '77036': 'C', '77037': 'C', '77038': 'C', '77039': 'C', '77040': 'C',
-        '77041': 'C', '77042': 'C', '77043': 'C', '77044': 'B', '77045': 'B',
-        '77046': 'B', '77047': 'B', '77048': 'B', '77049': 'B', '77050': 'B',
-        '77051': 'B', '77052': 'B', '77053': 'C', '77054': 'B', '77055': 'C',
-        '77056': 'C', '77057': 'C', '77058': 'A', '77059': 'A', '77060': 'C',
-        '77061': 'B', '77062': 'A', '77063': 'C', '77064': 'D', '77065': 'D',
-        '77066': 'C', '77067': 'C', '77068': 'C', '77069': 'D', '77070': 'D',
-        '77071': 'C', '77072': 'C', '77073': 'C', '77074': 'C', '77075': 'B',
-        '77076': 'C', '77077': 'C', '77078': 'B', '77079': 'C', '77080': 'C',
-        '77081': 'C', '77082': 'D', '77083': 'D', '77084': 'D', '77085': 'C',
-        '77086': 'C', '77087': 'A', '77088': 'C', '77089': 'B', '77090': 'C',
-        '77091': 'C', '77092': 'C', '77093': 'B', '77094': 'D', '77095': 'D',
-        '77096': 'B', '77097': 'D', '77098': 'B', '77099': 'B'
-    };
-
-    function searchZIP() {
-        var zip = document.getElementById('zipInput').value;
-        var zone = zipData[zip];
-
-        if (!zone) {
-            alert('ZIP code not found');
-            return;
-        }
-
-        var colorMap = {
-            'A': 'green',
-            'B': 'blue',
-            'C': 'orange',
-            'D': 'purple',
-            'E': 'red',
-            'F': 'black'
+        const zipToZone = {
+            "77001": "B", "77034": "A", "77356": "E", "77437": "F",
+            "77501": "A", "77549": "B", "77584": "F",
+            // Add the rest of your ZIPs and zones here
         };
 
-        var bounds = map.getBounds().pad(-0.8); // tighter zoom
-        var randomLat = bounds.getSouth() + Math.random() * (bounds.getNorth() - bounds.getSouth());
-        var randomLng = bounds.getWest() + Math.random() * (bounds.getEast() - bounds.getWest());
+        const zonePay = {
+            "A": "$200", "B": "$225", "C": "$280",
+            "D": "$315", "E": "$450", "F": "$550"
+        };
 
-        L.circle([randomLat, randomLng], {
-            color: colorMap[zone],
-            fillColor: colorMap[zone],
-            fillOpacity: 0.5,
-            radius: 1000
-        }).addTo(map)
-          .bindPopup("<b>ZIP: " + zip + "</b><br>Zone: " + zone).openPopup();
-    }
-</script>
+        const zoneColors = {
+            "A": "#8BC34A", "B": "#2196F3", "C": "#FF9800",
+            "D": "#9C27B0", "E": "#E91E63", "F": "#FF5722"
+        };
+
+        const zoneShapes = {
+            "A": [[29.6, -95.2], [29.6, -95.0], [29.4, -95.0], [29.4, -95.2]],
+            "B": [[29.8, -95.4], [29.8, -95.2], [29.6, -95.2], [29.6, -95.4]],
+            "C": [[30.0, -95.6], [30.0, -95.4], [29.8, -95.4], [29.8, -95.6]],
+            "D": [[30.2, -95.8], [30.2, -95.6], [30.0, -95.6], [30.0, -95.8]],
+            "E": [[30.4, -96.0], [30.4, -95.8], [30.2, -95.8], [30.2, -96.0]],
+            "F": [[30.6, -96.2], [30.6, -96.0], [30.4, -96.0], [30.4, -96.2]]
+        };
+
+        let currentLayer = null;
+
+        function findZone() {
+            const zip = document.getElementById("zipInput").value;
+            const zone = zipToZone[zip];
+
+            if (!zone) {
+                alert("ZIP code not found");
+                return;
+            }
+
+            const pay = zonePay[zone];
+            const shape = zoneShapes[zone];
+            const color = zoneColors[zone];
+
+            if (currentLayer) {
+                map.removeLayer(currentLayer);
+            }
+
+            currentLayer = L.polygon(shape, {
+                color: color,
+                fillColor: color,
+                fillOpacity: 0.5
+            }).addTo(map);
+
+            currentLayer.bindPopup(`<b>ZIP:</b> ${zip}<br><b>Zone:</b> ${zone}<br><b>Pay:</b> ${pay}`).openPopup();
+            map.fitBounds(currentLayer.getBounds());
+        }
+    </script>
 </body>
 </html>
