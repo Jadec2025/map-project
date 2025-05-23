@@ -38,7 +38,7 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Function to get zone color
+        // Function to get zone color based on zone type
         function getColor(zone) {
             switch(zone) {
                 case 'A': return '#ff0000'; // Red for Zone A
@@ -51,7 +51,7 @@
             }
         }
 
-        // Zone data with coordinates, zone and pay
+        // Zone data with coordinates, zone, and pay
         var zones = [
             {zip: '77001', zone: 'B', pay: '$225', polygon: [
                 [29.75, -95.35], [29.75, -95.30], [29.70, -95.30], [29.70, -95.35]
@@ -71,34 +71,20 @@
             {zip: '77006', zone: 'F', pay: '$550', polygon: [
                 [29.78, -95.45], [29.78, -95.37], [29.72, -95.37], [29.72, -95.45]
             ]},
-            {zip: '77007', zone: 'B', pay: '$225', polygon: [
-                [29.73, -95.40], [29.73, -95.35], [29.68, -95.35], [29.68, -95.40]
-            ]},
-            {zip: '77008', zone: 'A', pay: '$200', polygon: [
-                [29.75, -95.45], [29.75, -95.38], [29.70, -95.38], [29.70, -95.45]
-            ]},
-            {zip: '77009', zone: 'C', pay: '$280', polygon: [
-                [29.74, -95.35], [29.74, -95.30], [29.69, -95.30], [29.69, -95.35]
-            ]},
-            {zip: '77010', zone: 'B', pay: '$225', polygon: [
-                [29.73, -95.33], [29.73, -95.28], [29.68, -95.28], [29.68, -95.33]
-            ]},
-            {zip: '77011', zone: 'B', pay: '$225', polygon: [
-                [29.72, -95.35], [29.72, -95.30], [29.67, -95.30], [29.67, -95.35]
-            ]},
-            {zip: '77012', zone: 'B', pay: '$225', polygon: [
-                [29.70, -95.32], [29.70, -95.27], [29.65, -95.27], [29.65, -95.32]
-            ]},
-            {zip: '77013', zone: 'C', pay: '$280', polygon: [
-                [29.68, -95.31], [29.68, -95.25], [29.63, -95.25], [29.63, -95.31]
-            ]},
-            // Add more zones below
+            // Add more zones as needed
         ];
 
         // Function to search and highlight the zone based on ZIP code
         function searchZone() {
             var zipCode = document.getElementById("zip-input").value;
             var zoneFound = false;
+
+            // Clear previous map overlays
+            map.eachLayer(function(layer) {
+                if (layer instanceof L.Polygon) {
+                    map.removeLayer(layer);
+                }
+            });
 
             zones.forEach(function(zoneData) {
                 if (zoneData.zip === zipCode) {
