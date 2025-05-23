@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -13,25 +12,73 @@
 <body>
 <div id="map"></div>
 <script>
+    // Initialize the map (centered on Houston)
     var map = L.map('map').setView([29.7604, -95.3698], 9); // Houston area
 
+    // Set up the OpenStreetMap tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Sample zone polygon (replace with ZIP data in production)
-    var zone = L.polygon([
-        [29.75, -95.35],
-        [29.75, -95.30],
-        [29.70, -95.30],
-        [29.70, -95.35]
-    ], {
-        color: 'blue',
-        fillColor: '#3388ff',
-        fillOpacity: 0.5
-    }).addTo(map);
+    // Function to get zone color
+    function getColor(zone) {
+        switch(zone) {
+            case 'A': return '#ff0000'; // Red for Zone A
+            case 'B': return '#ff9900'; // Orange for Zone B
+            case 'C': return '#33cc33'; // Green for Zone C
+            case 'D': return '#0066ff'; // Blue for Zone D
+            case 'E': return '#9933cc'; // Purple for Zone E
+            case 'F': return '#3399ff'; // Light Blue for Zone F
+            default: return '#000000'; // Default for unknown zones
+        }
+    }
 
-    zone.bindPopup("<b>ZIP: 77005</b><br>Zone: B<br>Mileage: 21–35<br>Pay: $225");
+    // Zone data
+    var zones = [
+        {zip: '77001', zone: 'B', pay: '$225', polygon: [
+            [29.75, -95.35], [29.75, -95.30], [29.70, -95.30], [29.70, -95.35]
+        ]},
+        {zip: '77002', zone: 'B', pay: '$225', polygon: [
+            [29.75, -95.35], [29.75, -95.30], [29.70, -95.30], [29.70, -95.35]
+        ]},
+        {zip: '77003', zone: 'C', pay: '$280', polygon: [
+            [29.74, -95.34], [29.74, -95.29], [29.69, -95.29], [29.69, -95.34]
+        ]},
+        {zip: '77004', zone: 'D', pay: '$315', polygon: [
+            [29.73, -95.33], [29.73, -95.28], [29.68, -95.28], [29.68, -95.33]
+        ]},
+        {zip: '77005', zone: 'E', pay: '$450', polygon: [
+            [29.77, -95.49], [29.77, -95.40], [29.72, -95.40], [29.72, -95.49]
+        ]},
+        {zip: '77006', zone: 'F', pay: '$550', polygon: [
+            [29.78, -95.45], [29.78, -95.37], [29.72, -95.37], [29.72, -95.45]
+        ]},
+        {zip: '77007', zone: 'B', pay: '$225', polygon: [
+            [29.73, -95.40], [29.73, -95.35], [29.68, -95.35], [29.68, -95.40]
+        ]},
+        {zip: '77008', zone: 'A', pay: '$200', polygon: [
+            [29.75, -95.45], [29.75, -95.38], [29.70, -95.38], [29.70, -95.45]
+        ]},
+        {zip: '77009', zone: 'C', pay: '$280', polygon: [
+            [29.74, -95.35], [29.74, -95.30], [29.69, -95.30], [29.69, -95.35]
+        ]},
+        {zip: '77010', zone: 'B', pay: '$225', polygon: [
+            [29.73, -95.33], [29.73, -95.28], [29.68, -95.28], [29.68, -95.33]
+        ]},
+        // Continue adding more zones as needed
+    ];
+
+    // Add the zones to the map
+    zones.forEach(function(zoneData) {
+        L.polygon(zoneData.polygon, {
+            color: 'white',
+            weight: 1,
+            fillColor: getColor(zoneData.zone),
+            fillOpacity: 0.5
+        })
+        .addTo(map)
+        .bindPopup("<b>ZIP: " + zoneData.zip + "</b><br>Zone: " + zoneData.zone + "<br>Pay: " + zoneData.pay);
+    });
 </script>
 </body>
 </html>
