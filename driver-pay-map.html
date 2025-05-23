@@ -5,87 +5,105 @@
     <meta charset="utf-8" />
     <style>
         html, body, #map { height: 100%; margin: 0; padding: 0; }
-        #searchBar {
+        #search-container {
             position: absolute;
             top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 10px;
             z-index: 1000;
             background: white;
             padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 0 8px rgba(0,0,0,0.2);
+            border-radius: 5px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
     </style>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 </head>
 <body>
-    <div id="searchBar">
-        <input type="text" id="zipInput" placeholder="Enter ZIP Code" />
-        <button onclick="findZone()">Search</button>
-    </div>
-    <div id="map"></div>
+<div id="search-container">
+    <input type="text" id="zipInput" placeholder="Enter ZIP Code" />
+    <button onclick="findZone()">Search</button>
+</div>
+<div id="map"></div>
+<script>
+    var map = L.map('map').setView([29.7604, -95.3698], 9);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
 
-    <script>
-        const map = L.map('map').setView([29.7604, -95.3698], 9);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
+    const zipToZone = {
+        "77001": "B", "77002": "B", "77003": "B", "77004": "B", "77005": "B", "77006": "B",
+        "77007": "B", "77008": "B", "77009": "B", "77010": "B", "77011": "B", "77012": "B",
+        "77013": "B", "77014": "C", "77015": "B", "77016": "B", "77017": "B", "77018": "B",
+        "77019": "B", "77020": "B", "77021": "B", "77022": "B", "77023": "B", "77024": "C",
+        "77025": "B", "77026": "B", "77027": "C", "77028": "B", "77029": "B", "77030": "B",
+        "77031": "C", "77032": "C", "77033": "B", "77034": "A", "77035": "C", "77036": "C",
+        "77037": "C", "77038": "C", "77039": "C", "77040": "C", "77041": "C", "77042": "C",
+        "77043": "C", "77044": "B", "77045": "B", "77046": "B", "77047": "B", "77048": "B",
+        "77049": "B", "77050": "B", "77051": "B", "77052": "B", "77053": "C", "77054": "B",
+        "77055": "C", "77056": "C", "77057": "C", "77058": "A", "77059": "A", "77060": "C",
+        "77061": "B", "77062": "A", "77063": "C", "77064": "D", "77065": "D", "77066": "C",
+        "77067": "C", "77068": "C", "77069": "D", "77070": "D", "77071": "C", "77072": "C",
+        "77073": "C", "77074": "C", "77075": "B", "77076": "C", "77077": "C", "77078": "B",
+        "77079": "C", "77080": "C", "77081": "C", "77082": "D", "77083": "D", "77084": "D",
+        "77085": "C", "77086": "C", "77087": "A", "77088": "C", "77089": "B", "77090": "C",
+        "77091": "C", "77092": "C", "77093": "B", "77094": "D", "77095": "D", "77096": "B",
+        "77097": "D", "77098": "B", "77099": "B", "77301": "D", "77302": "D", "77303": "D",
+        "77304": "D", "77305": "D", "77306": "D", "77325": "C", "77336": "C", "77337": "D",
+        "77338": "B", "77339": "B", "77345": "B", "77346": "B", "77354": "D", "77355": "D",
+        "77356": "E", "77357": "D", "77362": "D", "77365": "D", "77372": "D", "77373": "C",
+        "77375": "D", "77377": "D", "77378": "E", "77379": "D", "77380": "D", "77381": "D",
+        "77382": "D", "77383": "D", "77384": "D", "77385": "D", "77386": "D", "77387": "D",
+        "77388": "D", "77389": "D", "77391": "D", "77396": "C", "77406": "D", "77410": "D",
+        "77411": "C", "77423": "E", "77429": "D", "77433": "D", "77437": "F", "77449": "D",
+        "77450": "D", "77459": "C", "77469": "D", "77471": "C", "77476": "D", "77477": "C",
+        "77478": "C", "77479": "C", "77484": "E", "77487": "C", "77489": "C", "77491": "C",
+        "77492": "D", "77493": "D", "77501": "A", "77502": "A", "77503": "A", "77504": "A",
+        "77505": "A", "77506": "A", "77507": "A", "77508": "A", "77510": "A", "77511": "A",
+        "77512": "A", "77517": "A", "77520": "A", "77521": "A", "77522": "A", "77530": "A",
+        "77536": "A", "77539": "A", "77545": "A", "77546": "A", "77549": "B", "77571": "A",
+        "77572": "A", "77573": "B", "77574": "A", "77578": "C", "77581": "B", "77583": "D",
+        "77584": "F", "77585": "F", "77586": "A", "77587": "B", "77588": "C", "77597": "C",
+        "77598": "B"
+    };
+
+    const zonePay = {
+        "A": "$200", "B": "$225", "C": "$280", "D": "$315", "E": "$450", "F": "$550"
+    };
+
+    const zoneColors = {
+        "A": "#8BC34A", "B": "#2196F3", "C": "#FF9800", "D": "#9C27B0", "E": "#E91E63", "F": "#FF5722"
+    };
+
+    var currentLayer;
+
+    function findZone() {
+        const zip = document.getElementById("zipInput").value;
+        const zone = zipToZone[zip];
+
+        if (!zone) {
+            alert("ZIP code not found");
+            return;
+        }
+
+        const pay = zonePay[zone];
+        const color = zoneColors[zone];
+
+        if (currentLayer) {
+            map.removeLayer(currentLayer);
+        }
+
+        // Placeholder polygon for demonstration
+        currentLayer = L.circle([29.76, -95.37], {
+            color: color,
+            fillColor: color,
+            fillOpacity: 0.5,
+            radius: 10000
         }).addTo(map);
 
-        const zipToZone = {
-            "77001": "B", "77034": "A", "77356": "E", "77437": "F",
-            "77501": "A", "77549": "B", "77584": "F",
-            // Add the rest of your ZIPs and zones here
-        };
-
-        const zonePay = {
-            "A": "$200", "B": "$225", "C": "$280",
-            "D": "$315", "E": "$450", "F": "$550"
-        };
-
-        const zoneColors = {
-            "A": "#8BC34A", "B": "#2196F3", "C": "#FF9800",
-            "D": "#9C27B0", "E": "#E91E63", "F": "#FF5722"
-        };
-
-        const zoneShapes = {
-            "A": [[29.6, -95.2], [29.6, -95.0], [29.4, -95.0], [29.4, -95.2]],
-            "B": [[29.8, -95.4], [29.8, -95.2], [29.6, -95.2], [29.6, -95.4]],
-            "C": [[30.0, -95.6], [30.0, -95.4], [29.8, -95.4], [29.8, -95.6]],
-            "D": [[30.2, -95.8], [30.2, -95.6], [30.0, -95.6], [30.0, -95.8]],
-            "E": [[30.4, -96.0], [30.4, -95.8], [30.2, -95.8], [30.2, -96.0]],
-            "F": [[30.6, -96.2], [30.6, -96.0], [30.4, -96.0], [30.4, -96.2]]
-        };
-
-        let currentLayer = null;
-
-        function findZone() {
-            const zip = document.getElementById("zipInput").value;
-            const zone = zipToZone[zip];
-
-            if (!zone) {
-                alert("ZIP code not found");
-                return;
-            }
-
-            const pay = zonePay[zone];
-            const shape = zoneShapes[zone];
-            const color = zoneColors[zone];
-
-            if (currentLayer) {
-                map.removeLayer(currentLayer);
-            }
-
-            currentLayer = L.polygon(shape, {
-                color: color,
-                fillColor: color,
-                fillOpacity: 0.5
-            }).addTo(map);
-
-            currentLayer.bindPopup(`<b>ZIP:</b> ${zip}<br><b>Zone:</b> ${zone}<br><b>Pay:</b> ${pay}`).openPopup();
-            map.fitBounds(currentLayer.getBounds());
-        }
-    </script>
+        currentLayer.bindPopup(`<b>ZIP:</b> ${zip}<br><b>Zone:</b> ${zone}<br><b>Pay:</b> ${pay}`).openPopup();
+        map.setView([29.76, -95.37], 10);
+    }
+</script>
 </body>
 </html>
