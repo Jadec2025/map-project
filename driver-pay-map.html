@@ -5,80 +5,111 @@
     <meta charset="utf-8" />
     <style>
         html, body, #map { height: 100%; margin: 0; padding: 0; }
+        #search-bar {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
     </style>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 </head>
 <body>
-<div id="map"></div>
-<script>
-    // Initialize the map (centered on Houston)
-    var map = L.map('map').setView([29.7604, -95.3698], 9); // Houston area
+    <!-- Search bar for ZIP code -->
+    <div id="search-bar">
+        <label for="zip-input">Enter ZIP Code:</label>
+        <input type="text" id="zip-input" placeholder="e.g., 77001">
+        <button onclick="searchZone()">Search</button>
+    </div>
 
-    // Set up the OpenStreetMap tile layer
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+    <div id="map"></div>
 
-    // Function to get zone color
-    function getColor(zone) {
-        switch(zone) {
-            case 'A': return '#ff0000'; // Red for Zone A
-            case 'B': return '#ff9900'; // Orange for Zone B
-            case 'C': return '#33cc33'; // Green for Zone C
-            case 'D': return '#0066ff'; // Blue for Zone D
-            case 'E': return '#9933cc'; // Purple for Zone E
-            case 'F': return '#3399ff'; // Light Blue for Zone F
-            default: return '#000000'; // Default for unknown zones
+    <script>
+        var map = L.map('map').setView([29.7604, -95.3698], 9); // Houston area
+
+        // OpenStreetMap layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Function to get zone color
+        function getColor(zone) {
+            switch(zone) {
+                case 'A': return '#ff0000'; // Red for Zone A
+                case 'B': return '#ff9900'; // Orange for Zone B
+                case 'C': return '#33cc33'; // Green for Zone C
+                case 'D': return '#0066ff'; // Blue for Zone D
+                case 'E': return '#9933cc'; // Purple for Zone E
+                case 'F': return '#3399ff'; // Light Blue for Zone F
+                default: return '#000000'; // Default for unknown zones
+            }
         }
-    }
 
-    // Zone data
-    var zones = [
-        {zip: '77001', zone: 'B', pay: '$225', polygon: [
-            [29.75, -95.35], [29.75, -95.30], [29.70, -95.30], [29.70, -95.35]
-        ]},
-        {zip: '77002', zone: 'B', pay: '$225', polygon: [
-            [29.75, -95.35], [29.75, -95.30], [29.70, -95.30], [29.70, -95.35]
-        ]},
-        {zip: '77003', zone: 'C', pay: '$280', polygon: [
-            [29.74, -95.34], [29.74, -95.29], [29.69, -95.29], [29.69, -95.34]
-        ]},
-        {zip: '77004', zone: 'D', pay: '$315', polygon: [
-            [29.73, -95.33], [29.73, -95.28], [29.68, -95.28], [29.68, -95.33]
-        ]},
-        {zip: '77005', zone: 'E', pay: '$450', polygon: [
-            [29.77, -95.49], [29.77, -95.40], [29.72, -95.40], [29.72, -95.49]
-        ]},
-        {zip: '77006', zone: 'F', pay: '$550', polygon: [
-            [29.78, -95.45], [29.78, -95.37], [29.72, -95.37], [29.72, -95.45]
-        ]},
-        {zip: '77007', zone: 'B', pay: '$225', polygon: [
-            [29.73, -95.40], [29.73, -95.35], [29.68, -95.35], [29.68, -95.40]
-        ]},
-        {zip: '77008', zone: 'A', pay: '$200', polygon: [
-            [29.75, -95.45], [29.75, -95.38], [29.70, -95.38], [29.70, -95.45]
-        ]},
-        {zip: '77009', zone: 'C', pay: '$280', polygon: [
-            [29.74, -95.35], [29.74, -95.30], [29.69, -95.30], [29.69, -95.35]
-        ]},
-        {zip: '77010', zone: 'B', pay: '$225', polygon: [
-            [29.73, -95.33], [29.73, -95.28], [29.68, -95.28], [29.68, -95.33]
-        ]},
-        // Continue adding more zones as needed
-    ];
+        // Zone data with coordinates, zone and pay
+        var zones = [
+            {zip: '77001', zone: 'B', pay: '$225', polygon: [
+                [29.75, -95.35], [29.75, -95.30], [29.70, -95.30], [29.70, -95.35]
+            ]},
+            {zip: '77002', zone: 'B', pay: '$225', polygon: [
+                [29.75, -95.35], [29.75, -95.30], [29.70, -95.30], [29.70, -95.35]
+            ]},
+            {zip: '77003', zone: 'C', pay: '$280', polygon: [
+                [29.74, -95.34], [29.74, -95.29], [29.69, -95.29], [29.69, -95.34]
+            ]},
+            {zip: '77004', zone: 'D', pay: '$315', polygon: [
+                [29.73, -95.33], [29.73, -95.28], [29.68, -95.28], [29.68, -95.33]
+            ]},
+            {zip: '77005', zone: 'E', pay: '$450', polygon: [
+                [29.77, -95.49], [29.77, -95.40], [29.72, -95.40], [29.72, -95.49]
+            ]},
+            {zip: '77006', zone: 'F', pay: '$550', polygon: [
+                [29.78, -95.45], [29.78, -95.37], [29.72, -95.37], [29.72, -95.45]
+            ]},
+            {zip: '77007', zone: 'B', pay: '$225', polygon: [
+                [29.73, -95.40], [29.73, -95.35], [29.68, -95.35], [29.68, -95.40]
+            ]},
+            {zip: '77008', zone: 'A', pay: '$200', polygon: [
+                [29.75, -95.45], [29.75, -95.38], [29.70, -95.38], [29.70, -95.45]
+            ]},
+            {zip: '77009', zone: 'C', pay: '$280', polygon: [
+                [29.74, -95.35], [29.74, -95.30], [29.69, -95.30], [29.69, -95.35]
+            ]},
+            // Add additional zones as needed
+        ];
 
-    // Add the zones to the map
-    zones.forEach(function(zoneData) {
-        L.polygon(zoneData.polygon, {
-            color: 'white',
-            weight: 1,
-            fillColor: getColor(zoneData.zone),
-            fillOpacity: 0.5
-        })
-        .addTo(map)
-        .bindPopup("<b>ZIP: " + zoneData.zip + "</b><br>Zone: " + zoneData.zone + "<br>Pay: " + zoneData.pay);
-    });
-</script>
+        // Function to search and highlight the zone based on ZIP code
+        function searchZone() {
+            var zipCode = document.getElementById("zip-input").value;
+            var zoneFound = false;
+
+            zones.forEach(function(zoneData) {
+                if (zoneData.zip === zipCode) {
+                    zoneFound = true;
+                    // Pan the map to the zone's center
+                    map.setView([zoneData.polygon[0][0], zoneData.polygon[0][1]], 12);
+
+                    // Highlight the zone by adding its polygon to the map
+                    L.polygon(zoneData.polygon, {
+                        color: 'white',
+                        weight: 1,
+                        fillColor: getColor(zoneData.zone),
+                        fillOpacity: 0.5
+                    })
+                    .addTo(map)
+                    .bindPopup("<b>ZIP: " + zoneData.zip + "</b><br>Zone: " + zoneData.zone + "<br>Pay: " + zoneData.pay);
+                }
+            });
+
+            if (!zoneFound) {
+                alert("ZIP Code not found. Please try again.");
+            }
+        }
+    </script>
 </body>
 </html>
