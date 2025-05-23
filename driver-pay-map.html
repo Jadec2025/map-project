@@ -1,0 +1,37 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Driver Pay Map</title>
+    <meta charset="utf-8" />
+    <style>
+        html, body, #map { height: 100%; margin: 0; padding: 0; }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+</head>
+<body>
+<div id="map"></div>
+<script>
+    var map = L.map('map').setView([29.7604, -95.3698], 9); // Houston area
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Sample zone polygon (replace with ZIP data in production)
+    var zone = L.polygon([
+        [29.75, -95.35],
+        [29.75, -95.30],
+        [29.70, -95.30],
+        [29.70, -95.35]
+    ], {
+        color: 'blue',
+        fillColor: '#3388ff',
+        fillOpacity: 0.5
+    }).addTo(map);
+
+    zone.bindPopup("<b>ZIP: 77005</b><br>Zone: B<br>Mileage: 21–35<br>Pay: $225");
+</script>
+</body>
+</html>
