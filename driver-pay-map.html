@@ -26,8 +26,9 @@
   <button onclick="searchZip()">Search</button>
 </div>
 <div id="map"></div>
+
 <script>
-  var map = L.map('map').setView([29.7604, -95.3698], 9); // Houston area
+  var map = L.map('map').setView([29.7604, -95.3698], 9); // Houston
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
@@ -84,24 +85,50 @@
     "F": "#d291bc"
   };
 
-  var polygon;
+  let geojsonLayer;
+  let geojsonData;
+
+  // Load the GeoJSON once
+  fetch('/mnt/data/map.geojson')
+    .then(res => res.json())
+    .then(data => {
+      geojsonData = data;
+    });
 
   function searchZip() {
     var zip = document.getElementById('zipInput').value;
+
     if (!zipData[zip]) {
-      alert("ZIP code not found.");
+      alert("ZIP code not found in zone data.");
       return;
     }
-    var zone = zipData[zip];
-    var color = zoneColors[zone];
-    if (polygon) map.removeLayer(polygon);
-    polygon = L.circle([29.7604, -95.3698], {
-      radius: 10000,
-      color: color,
-      fillColor: color,
-      fillOpacity: 0.5
+
+    // Remove previous highlight
+    if (geojsonLayer) {
+      map.removeLayer(geojsonLayer);
+    }
+
+    geojsonLayer = L.geoJSON(geojsonData, {
+      filter: function(feature) {
+        return feature.properties.zone === zip;
+      },
+      style: function(feature) {
+        const zone = zipData[feature.properties.zone];
+        const color = zoneColors[zone] || "#cccccc";
+        return {
+          color: color,
+          fillColor: color,
+          weight: 2,
+          fillOpacity: 0.5
+        };
+      },
+      onEachFeature: function(feature, layer) {
+        const zone = zipData[feature.properties.zone];
+        layer.bindPopup(`<b>ZIP: ${feature.properties.zone}</b><br>Zone: ${zone}`);
+      }
     }).addTo(map);
-    polygon.bindPopup(`<b>ZIP: ${zip}</b><br>Zone: ${zone}`).openPopup();
+
+    map.fitBounds(geojsonLayer.getBounds());
   }
 </script>
 </body>
