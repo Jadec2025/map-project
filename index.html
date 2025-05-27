@@ -37,7 +37,7 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
     const zipData = {
-           "77001": "B", "77002": "B", "77003": "B", "77004": "B", "77005": "B",
+      "77001": "B", "77002": "B", "77003": "B", "77004": "B", "77005": "B",
       "77006": "B", "77007": "B", "77008": "B", "77009": "B", "77010": "B",
       "77011": "B", "77012": "B", "77013": "B", "77014": "C", "77015": "B",
       "77016": "B", "77017": "B", "77018": "B", "77019": "B", "77020": "B",
@@ -134,10 +134,8 @@
       }
 
       geojsonLayer = L.geoJSON(geojsonData, {
-        filter: function(feature) {
-          return feature.properties.zip === zip;
-        },
-        style: function(feature) {
+        filter: feature => feature.properties.zip === zip,
+        style: feature => {
           const zone = zipData[feature.properties.zip];
           const color = zoneColors[zone] || "#cccccc";
           return {
@@ -147,7 +145,7 @@
             fillOpacity: 0.5
           };
         },
-        onEachFeature: function(feature, layer) {
+        onEachFeature: (feature, layer) => {
           const zone = zipData[feature.properties.zip];
           const price = zonePrices[zone] || "N/A";
           layer.bindPopup(`<b>ZIP: ${feature.properties.zip}</b><br>Zone: ${zone}<br>Price: ${price}`);
@@ -166,15 +164,14 @@
     const legend = L.control({ position: 'bottomright' });
 
     legend.onAdd = function () {
-      const div = L.DomUtil.create('div', 'info legend');
+      const div = L.DomUtil.create('div', 'legend');
       const zones = Object.keys(zoneColors);
 
       div.innerHTML += '<strong>Zone Legend</strong><br>';
       zones.forEach(zone => {
-        div.innerHTML += `
-          <i style="background:${zoneColors[zone]}"></i>
-          Zone ${zone} - ${zonePrices[zone]}<br>
-        `;
+        const color = zoneColors[zone];
+        const price = zonePrices[zone];
+        div.innerHTML += `<i style="background:${color}"></i> Zone ${zone} - ${price}<br>`;
       });
 
       return div;
