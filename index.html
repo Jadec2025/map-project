@@ -35,7 +35,7 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    const zipData =  {
+    const zipData = {      
       "77001": "B", "77002": "B", "77003": "B", "77004": "B", "77005": "B",
       "77006": "B", "77007": "B", "77008": "B", "77009": "B", "77010": "B",
       "77011": "B", "77012": "B", "77013": "B", "77014": "C", "77015": "B",
@@ -76,7 +76,6 @@
       "77581": "B", "77583": "D", "77584": "F", "77585": "F", "77586": "A",
       "77587": "B", "77588": "C", "77597": "C", "77598": "B"
     };
-
 
     const zoneColors = {
       "A": "#a8e6cf",
@@ -136,7 +135,18 @@
         map.removeLayer(geojsonLayer);
       }
 
-      const features = geojsonData.features.filter(f => f.properties.zip === zip || f.properties.ZIP === zip || f.properties.ZCTA5CE10 === zip);
+      console.log("ZIP searched:", zip);
+      console.log("Example feature props:", geojsonData.features[0]?.properties);
+
+      const features = geojsonData.features.filter(f => {
+        const props = f.properties;
+        return props.zip === zip ||
+               props.ZIP === zip ||
+               props.ZCTA5CE10 === zip ||
+               props.GEOID10 === zip ||
+               props.NAME10 === zip;
+      });
+
       if (features.length === 0) {
         alert("No geometry found for this ZIP code.");
         return;
