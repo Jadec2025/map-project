@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
     #map { height: 600px; }
-
     .legend {
       background: white;
       padding: 10px;
@@ -17,7 +16,6 @@
       box-shadow: 0 0 15px rgba(0,0,0,0.2);
       border-radius: 5px;
     }
-
     .legend i {
       vertical-align: middle;
       margin-right: 6px;
@@ -28,14 +26,13 @@
   </style>
 </head>
 <body>
-
   <input type="text" id="zipInput" placeholder="Enter ZIP code" />
   <button onclick="searchZip()">Search</button>
   <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    const zipData = {      
+    const zipData = {
       "77001": "B", "77002": "B", "77003": "B", "77004": "B", "77005": "B",
       "77006": "B", "77007": "B", "77008": "B", "77009": "B", "77010": "B",
       "77011": "B", "77012": "B", "77013": "B", "77014": "C", "77015": "B",
@@ -78,44 +75,32 @@
     };
 
     const zoneColors = {
-      "A": "#a8e6cf",
-      "B": "#dcedc1",
-      "C": "#ffd3b6",
-      "D": "#ffaaa5",
-      "E": "#ff8b94",
-      "F": "#d291bc"
+      "A": "#a8e6cf", "B": "#dcedc1", "C": "#ffd3b6",
+      "D": "#ffaaa5", "E": "#ff8b94", "F": "#d291bc"
     };
 
     const zonePrices = {
-      "A": "$200",
-      "B": "$225",
-      "C": "$280",
-      "D": "$315",
-      "E": "$450",
-      "F": "$550"
+      "A": "$200", "B": "$225", "C": "$280",
+      "D": "$315", "E": "$450", "F": "$550"
     };
 
-    let map = L.map('map').setView([29.76, -95.37], 10);
-
+    const map = L.map('map').setView([29.76, -95.37], 10);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
     }).addTo(map);
 
-    let geojsonLayer;
     let geojsonData;
+    let currentMarker;
 
     fetch('map.geojson')
-      .then(res => {
-        if (!res.ok) throw new Error("GeoJSON file not found");
-        return res.json();
-      })
+      .then(res => res.json())
       .then(data => {
         geojsonData = data;
         console.log("GeoJSON loaded with", data.features.length, "features");
       })
-      .catch(e => {
-        alert("Failed to load GeoJSON data. Check your file path.");
-        console.error(e);
+      .catch(err => {
+        alert("Failed to load GeoJSON data.");
+        console.error(err);
       });
 
     function searchZip() {
@@ -131,71 +116,45 @@
         return;
       }
 
-      if (geojsonLayer) {
-        map.removeLayer(geojsonLayer);
-      }
-
-      console.log("ZIP searched:", zip);
-      console.log("Example feature props:", geojsonData.features[0]?.properties);
-
-      const features = geojsonData.features.filter(f => {
+      const matchedFeature = geojsonData.features.find(f => {
         const props = f.properties;
-        return props.zip === zip ||
-               props.ZIP === zip ||
-               props.ZCTA5CE10 === zip ||
-               props.GEOID10 === zip ||
-               props.NAME10 === zip;
+        return props.zip == zip || props.ZIP == zip || props.ZCTA5CE10 == zip || props.GEOID10 == zip || props.NAME10 == zip;
       });
 
-      if (features.length === 0) {
+      if (!matchedFeature) {
         alert("No geometry found for this ZIP code.");
         return;
       }
 
-      geojsonLayer = L.geoJSON(features, {
-        style: feature => {
-          const zone = zipData[zip];
-          return {
-            color: "#333",
-            weight: 2,
-            fillColor: zoneColors[zone] || "#ccc",
-            fillOpacity: 0.6
-          };
-        },
-        onEachFeature: (feature, layer) => {
-          const zone = zipData[zip];
-          const price = zonePrices[zone] || "N/A";
-          layer.bindPopup(`<b>ZIP: ${zip}</b><br>Zone: ${zone}<br>Price: ${price}`);
-        }
-      }).addTo(map);
+      const zone = zipData[zip];
+      const price = zonePrices[zone] || "N/A";
+      const coords = matchedFeature.geometry.coordinates;
 
-      try {
-        const bounds = geojsonLayer.getBounds();
-        if (bounds.isValid()) {
-          map.fitBounds(bounds);
-        } else if (features[0].geometry.type === "Point") {
-          const coords = features[0].geometry.coordinates;
-          map.setView([coords[1], coords[0]], 13);
-        } else {
-          alert("No valid geometry to zoom to.");
-        }
-      } catch (e) {
-        console.error("Error fitting bounds:", e);
+      if (currentMarker) {
+        map.removeLayer(currentMarker);
+      }
+
+      if (matchedFeature.geometry.type === "Point") {
+        currentMarker = L.circleMarker([coords[1], coords[0]], {
+          radius: 8,
+          fillColor: zoneColors[zone] || "#ccc",
+          color: "#333",
+          weight: 1,
+          fillOpacity: 0.8
+        }).addTo(map).bindPopup(`<b>ZIP: ${zip}</b><br>Zone: ${zone}<br>Price: ${price}`).openPopup();
+        map.setView([coords[1], coords[0]], 13);
+      } else {
+        alert("Unsupported geometry type.");
       }
     }
 
     const legend = L.control({ position: 'bottomright' });
     legend.onAdd = function () {
       const div = L.DomUtil.create('div', 'legend');
-      const zones = Object.keys(zoneColors);
-
       div.innerHTML += '<strong>Zone Legend</strong><br>';
-      zones.forEach(zone => {
-        const color = zoneColors[zone];
-        const price = zonePrices[zone];
-        div.innerHTML += `<i style="background:${color}"></i> Zone ${zone} - ${price}<br>`;
-      });
-
+      for (const zone in zoneColors) {
+        div.innerHTML += `<i style="background:${zoneColors[zone]}"></i> Zone ${zone} - ${zonePrices[zone]}<br>`;
+      }
       return div;
     };
     legend.addTo(map);
