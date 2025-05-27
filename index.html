@@ -8,6 +8,23 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
     #map { height: 600px; }
+
+    .legend {
+      background: white;
+      padding: 10px;
+      line-height: 18px;
+      color: #333;
+      font-size: 14px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      border-radius: 5px;
+    }
+    .legend i {
+      vertical-align: middle;
+      margin-right: 6px;
+      width: 18px;
+      height: 18px;
+      display: inline-block;
+    }
   </style>
 </head>
 <body>
@@ -19,9 +36,8 @@
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    // Your zip-to-zone mapping
     const zipData = {
-      "77001": "B", "77002": "B", "77003": "B", "77004": "B", "77005": "B",
+           "77001": "B", "77002": "B", "77003": "B", "77004": "B", "77005": "B",
       "77006": "B", "77007": "B", "77008": "B", "77009": "B", "77010": "B",
       "77011": "B", "77012": "B", "77013": "B", "77014": "C", "77015": "B",
       "77016": "B", "77017": "B", "77018": "B", "77019": "B", "77020": "B",
@@ -62,7 +78,7 @@
       "77587": "B", "77588": "C", "77597": "C", "77598": "B"
     };
 
-    // Zone colors
+
     const zoneColors = {
       "A": "#a8e6cf",
       "B": "#dcedc1",
@@ -72,7 +88,6 @@
       "F": "#d291bc"
     };
 
-    // Zone prices
     const zonePrices = {
       "A": "$200",
       "B": "$225",
@@ -82,7 +97,7 @@
       "F": "$550"
     };
 
-    let map = L.map('map').setView([29.76, -95.37], 10); // Houston coords & zoom
+    let map = L.map('map').setView([29.76, -95.37], 10);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -91,7 +106,6 @@
     let geojsonLayer;
     let geojsonData;
 
-    // Load your GeoJSON (replace 'map.geojson' with your actual GeoJSON file path)
     fetch('map.geojson')
       .then(res => res.json())
       .then(data => {
@@ -119,10 +133,8 @@
         map.removeLayer(geojsonLayer);
       }
 
-      // Filter GeoJSON features to only those matching the ZIP code
       geojsonLayer = L.geoJSON(geojsonData, {
         filter: function(feature) {
-          // Adjust 'zip' property name based on your GeoJSON properties
           return feature.properties.zip === zip;
         },
         style: function(feature) {
@@ -142,7 +154,6 @@
         }
       }).addTo(map);
 
-      // Zoom to the bounds of the matched ZIP code area
       const bounds = geojsonLayer.getBounds();
       if (bounds.isValid()) {
         map.fitBounds(bounds);
@@ -150,6 +161,26 @@
         alert("No geometry found for this ZIP code.");
       }
     }
+
+    // Add zone legend to map
+    const legend = L.control({ position: 'bottomright' });
+
+    legend.onAdd = function () {
+      const div = L.DomUtil.create('div', 'info legend');
+      const zones = Object.keys(zoneColors);
+
+      div.innerHTML += '<strong>Zone Legend</strong><br>';
+      zones.forEach(zone => {
+        div.innerHTML += `
+          <i style="background:${zoneColors[zone]}"></i>
+          Zone ${zone} - ${zonePrices[zone]}<br>
+        `;
+      });
+
+      return div;
+    };
+
+    legend.addTo(map);
   </script>
 
 </body>
