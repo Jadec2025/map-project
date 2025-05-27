@@ -88,8 +88,8 @@
   let geojsonLayer;
   let geojsonData;
 
-  // Load the GeoJSON once
-  fetch('/mnt/data/map.geojson')
+  // Updated fetch path here
+  fetch('map.geojson')
     .then(res => res.json())
     .then(data => {
       geojsonData = data;
