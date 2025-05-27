@@ -35,7 +35,7 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    const zipData = {
+    const zipData =  {
       "77001": "B", "77002": "B", "77003": "B", "77004": "B", "77005": "B",
       "77006": "B", "77007": "B", "77008": "B", "77009": "B", "77010": "B",
       "77011": "B", "77012": "B", "77013": "B", "77014": "C", "77015": "B",
@@ -77,6 +77,7 @@
       "77587": "B", "77588": "C", "77597": "C", "77598": "B"
     };
 
+
     const zoneColors = {
       "A": "#a8e6cf",
       "B": "#dcedc1",
@@ -105,9 +106,13 @@
     let geojsonData;
 
     fetch('map.geojson')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("GeoJSON file not found");
+        return res.json();
+      })
       .then(data => {
         geojsonData = data;
+        console.log("GeoJSON loaded with", data.features.length, "features");
       })
       .catch(e => {
         alert("Failed to load GeoJSON data. Check your file path.");
@@ -131,20 +136,26 @@
         map.removeLayer(geojsonLayer);
       }
 
-      const features = geojsonData.features.filter(f => f.properties.zip === zip);
+      const features = geojsonData.features.filter(f => f.properties.zip === zip || f.properties.ZIP === zip || f.properties.ZCTA5CE10 === zip);
       if (features.length === 0) {
         alert("No geometry found for this ZIP code.");
         return;
       }
 
       geojsonLayer = L.geoJSON(features, {
-        pointToLayer: (feature, latlng) => {
-          return L.marker(latlng);
+        style: feature => {
+          const zone = zipData[zip];
+          return {
+            color: "#333",
+            weight: 2,
+            fillColor: zoneColors[zone] || "#ccc",
+            fillOpacity: 0.6
+          };
         },
         onEachFeature: (feature, layer) => {
-          const zone = zipData[feature.properties.zip];
+          const zone = zipData[zip];
           const price = zonePrices[zone] || "N/A";
-          layer.bindPopup(`<b>ZIP: ${feature.properties.zip}</b><br>Zone: ${zone}<br>Price: ${price}`);
+          layer.bindPopup(`<b>ZIP: ${zip}</b><br>Zone: ${zone}<br>Price: ${price}`);
         }
       }).addTo(map);
 
@@ -163,9 +174,7 @@
       }
     }
 
-    // Add zone legend
     const legend = L.control({ position: 'bottomright' });
-
     legend.onAdd = function () {
       const div = L.DomUtil.create('div', 'legend');
       const zones = Object.keys(zoneColors);
@@ -179,9 +188,7 @@
 
       return div;
     };
-
     legend.addTo(map);
   </script>
-
 </body>
 </html>
