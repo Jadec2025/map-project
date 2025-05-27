@@ -37,18 +37,13 @@
       "D": "#ffaaa5", "E": "#ff8b94", "F": "#d291bc"
     };
 
-    const zonePrices = {
-      "A": "$200", "B": "$225", "C": "$280",
-      "D": "$315", "E": "$450", "F": "$550"
-    };
-
     const map = L.map('map').setView([29.76, -95.37], 10);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
     }).addTo(map);
 
     let geojsonData;
-    let currentMarker;
+    let currentLayer;
 
     fetch('map.geojson')
       .then(res => res.json())
@@ -71,7 +66,7 @@
 
       const matchedFeature = geojsonData.features.find(f => {
         const props = f.properties;
-        return String(props.zip_code) === zip;
+        return props.zip_code == zip || props.ZIP == zip || props.ZCTA5CE10 == zip || props.GEOID10 == zip || props.NAME10 == zip;
       });
 
       if (!matchedFeature) {
@@ -80,33 +75,34 @@
       }
 
       const zone = matchedFeature.properties.zone;
-      const price = zonePrices[zone] || `$${matchedFeature.properties.pricing || 'N/A'}`;
+      const price = matchedFeature.properties.pricing;
       const coords = matchedFeature.geometry.coordinates;
 
-      if (currentMarker) {
-        map.removeLayer(currentMarker);
+      if (currentLayer) {
+        map.removeLayer(currentLayer);
       }
 
       if (matchedFeature.geometry.type === "Point") {
-        currentMarker = L.circleMarker([coords[1], coords[0]], {
+        currentLayer = L.circleMarker([coords[1], coords[0]], {
           radius: 8,
           fillColor: zoneColors[zone] || "#ccc",
           color: "#333",
           weight: 1,
           fillOpacity: 0.8
-        }).addTo(map).bindPopup(`<b>ZIP: ${zip}</b><br>Zone: ${zone}<br>Price: ${price}`).openPopup();
+        }).addTo(map).bindPopup(`<b>ZIP: ${zip}</b><br>Zone: ${zone}<br>Price: $${price}`).openPopup();
         map.setView([coords[1], coords[0]], 13);
       } else {
         alert("Unsupported geometry type.");
       }
     }
 
+    // Add a color legend
     const legend = L.control({ position: 'bottomright' });
     legend.onAdd = function () {
       const div = L.DomUtil.create('div', 'legend');
       div.innerHTML += '<strong>Zone Legend</strong><br>';
       for (const zone in zoneColors) {
-        div.innerHTML += `<i style="background:${zoneColors[zone]}"></i> Zone ${zone} - ${zonePrices[zone]}<br>`;
+        div.innerHTML += `<i style="background:${zoneColors[zone]}"></i> Zone ${zone}<br>`;
       }
       return div;
     };
