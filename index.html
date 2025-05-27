@@ -77,7 +77,6 @@
       "77587": "B", "77588": "C", "77597": "C", "77598": "B"
     };
 
-
     const zoneColors = {
       "A": "#a8e6cf",
       "B": "#dcedc1",
@@ -132,19 +131,15 @@
         map.removeLayer(geojsonLayer);
       }
 
-      geojsonLayer = L.geoJSON(geojsonData, {
-        filter: feature => feature.properties.zip === zip,
+      const features = geojsonData.features.filter(f => f.properties.zip === zip);
+      if (features.length === 0) {
+        alert("No geometry found for this ZIP code.");
+        return;
+      }
+
+      geojsonLayer = L.geoJSON(features, {
         pointToLayer: (feature, latlng) => {
-          const zone = zipData[feature.properties.zip];
-          const color = zoneColors[zone] || "#cccccc";
-          return L.circleMarker(latlng, {
-            radius: 8,
-            fillColor: color,
-            color: "#333",
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 0.8
-          });
+          return L.marker(latlng);
         },
         onEachFeature: (feature, layer) => {
           const zone = zipData[feature.properties.zip];
@@ -153,11 +148,18 @@
         }
       }).addTo(map);
 
-      const bounds = geojsonLayer.getBounds();
-      if (bounds.isValid()) {
-        map.fitBounds(bounds);
-      } else {
-        alert("No geometry found for this ZIP code.");
+      try {
+        const bounds = geojsonLayer.getBounds();
+        if (bounds.isValid()) {
+          map.fitBounds(bounds);
+        } else if (features[0].geometry.type === "Point") {
+          const coords = features[0].geometry.coordinates;
+          map.setView([coords[1], coords[0]], 13);
+        } else {
+          alert("No valid geometry to zoom to.");
+        }
+      } catch (e) {
+        console.error("Error fitting bounds:", e);
       }
     }
 
